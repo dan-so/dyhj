@@ -36,3 +36,7 @@ q or f          exit `dyhj`
 
 Once the selection is made, `dyhj` forks and performs the action in the
 background, so there is no delay between selections.
+
+## demo
+
+![demo.gif](demo.gif)
