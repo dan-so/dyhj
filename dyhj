@@ -1,0 +1,101 @@
+#!/usr/bin/bash
+
+: "${GOJIRA:=$(which jira)}"
+: "${LOGFILE:=/tmp/dyhj.log}"
+
+helpmsg="(t)odo (i)n-progress (d)one (n)ot-my-problem (q)uit (s)kip-subtask (S)kip-task"
+
+
+declare -A parents
+fetch_parents() {
+    local number 
+    local description
+    tasks=$("$GOJIRA" list --query "sprint in openSprints() and (type not in (epic,sub-task)) and (assignee = currentuser()) order by created")
+
+    while IFS=$'\n' read -r lines_of_tasks ; do
+        number=$(cut -d ':' -f 1 <<< "$lines_of_tasks")
+        description=$(cut -d ':' -f 2- <<< "$lines_of_tasks" | sed 's/^ *//')
+        parents["$number"]="$description"
+    done <<< "$tasks"
+}
+
+
+declare -A subtasks
+fetch_subtasks() {
+    for parent_number in "${!parents[@]}" ; do
+        echo "fetching ${parent_number} subtasks..."
+        subtasks["$parent_number"]=$("$GOJIRA" list --query \
+            "sprint in openSprints() and parent = ${parent_number} order by created asc")
+    done
+}
+
+
+ask_all_subtasks() {
+    echo ------------------------------
+    echo "$helpmsg"
+
+    for parent_number in "${!parents[@]}" ; do
+        echo "=== ${parent_number} ${parents[$parent_number]} ==="
+
+        unset lines
+        declare -a lines
+        while IFS=$'\n' read -r line ; do
+            lines+=("$line")
+        done <<< "${subtasks[$parent_number]}"
+
+        for subtask in "${lines[@]}" ; do
+            number=$(cut -d ':' -f 1 <<< "$subtask")
+            description=$(cut -d ':' -f 2- <<< "$subtask" | sed 's/^ *//')
+            while true ; do
+                printf "%s: %-53s " "$number" "$description"
+                read -s -r -n 1 char
+                case "$char" in
+                    s)
+                        echo "skipping"
+                        break
+                        ;;
+                    S)
+                        echo "skipping"
+                        echo "make a jira ticket for this so you mark it to-do"
+                        break
+                        ;;
+                    t)
+                        echo "todo"
+                        "$GOJIRA" todo "$number" >> "$LOGFILE" 2>&1 &
+                        break
+                        ;;
+                    i|w)
+                        echo "work in progress"
+                        "$GOJIRA" in-progress "$number" >> "$LOGFILE" 2>&1 &
+                        break
+                        ;;
+                    d)
+                        echo "done"
+                        "$GOJIRA" "done" "$number" >> "$LOGFILE" 2>&1 &
+                        break
+                        ;;
+                    n)
+                        echo "not my problem"
+                        "$GOJIRA" unassign "$number" >> "$LOGFILE" 2>&1 &
+                        break
+                        ;;
+                    f|q)
+                        echo "exit"
+                        exit 0
+                        ;;
+                    *)
+                        echo -e "\n$helpmsg"
+                        ;;
+                esac
+            done
+        done
+    done
+}
+
+main() {
+    fetch_parents
+    fetch_subtasks
+    ask_all_subtasks
+}
+
+main
