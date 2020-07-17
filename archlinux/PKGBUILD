@@ -1,0 +1,20 @@
+pkgname=dyhj
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="jira command-line tool for updating subtasks"
+arch=("any")
+url="https://github.com/dan-so/dyhj"
+license=("GPL3")
+depends=("go-jira")
+source=("https://github.com/dan-so/dyhj/archive/$pkgver.tar.gz")
+sha256sums=("e29f760c09214dfa2c0606f5035ac3f6cf3de3440b2afedb36d229d9b417919a")
+
+build() {
+    cd "$pkgname-$pkgver"
+    make check
+}
+
+
+package() {
+    install -Dm755 "$pkgname-$pkgver/dyhj" "$pkgdir/usr/bin/dyhj"
+}

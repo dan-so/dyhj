@@ -1,0 +1,21 @@
+pkgname=go-jira-nobin
+pkgver=1.0.23
+pkgrel=1
+pkgdesc="Simple command line client for Atlassian's Jira service written in Go"
+arch=("x86_64")
+url="https://github.com/go-jira/jira"
+license=("APACHE")
+makedepends=("go")
+conflicts=("go-jira")
+provides=("go-jira")
+source=("https://github.com/go-jira/jira/archive/v$pkgver.tar.gz")
+sha256sums=("01c86d3119d050774caa41b89fb4f038026542eb1e362e89f3f89bf330b68354")
+
+build() {
+    cd "jira-$pkgver"
+    make
+}
+
+package() {
+    install -Dm755 "jira-$pkgver/jira" "$pkgdir/usr/bin/jira"
+}
