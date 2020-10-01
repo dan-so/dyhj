@@ -1,0 +1,42 @@
+fields:
+  project:
+    key: {{ .parent.fields.project.key }}
+  issuetype:
+    name: Sub-task
+  parent:
+    key: {{ .parent.key }}
+  priority: # Values: Urgent, High, Medium, Low, 
+    name: Medium
+  assignee:
+    id: 3cf6df53cb928b0f2b3d0812
+  reporter:
+    id: 3cf6df53cb928b0f2b3d0812
+  customfield_10200: # story points
+    200
+  labels:
+    ['Engineering-BE', 'Engineering']
+
+  summary: >-
+
+
+
+  description: |~
+    words words
+
+    *Context*
+
+    words words
+
+    *Acceptance criteria*
+
+    words words
+
+    *Scope of work*
+    - ?h, task
+    - ?h, task
+    - ?h, documentation
+    - ?h, write test flow and QA
+    - ?h, Designer approval
+    - ?h, review rework merge
+    - ?h, deploy to
+    - ?h, PO approval
